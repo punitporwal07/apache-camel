@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext id="camel"
+		xmlns="http://camel.apache.org/schema/spring">
+
+		<route id="ibmMQ-to-activeMQ">
+			<description>Camel Route from IBM MQ to Amazon MQ</description>
+			<from uri="mq:queue:DEV.QUEUE.1?concurrentConsumers=1"/>
+			<inOnly uri="activemq:queue:DEV.QUEUE.1?preserveMessageQos=true"/>
+			<log message="Message moved from IBM-MQ to Active-MQ"/>
+		</route>
+
+		 <route id="ibmMQ-to-activeMQ-1">
+                        <description>Camel Route from IBM MQ to Amazon MQ</description>
+                        <from uri="mq:queue:LQ1?concurrentConsumers=1"/>
+                        <inOnly uri="activemq:queue:LQ1?preserveMessageQos=true"/>
+                        <log message="Message moved from IBM-MQ to Active-MQ"/>
+                </route>
+
+	</camelContext>
+
+	<bean id="mqConnectionFactory" class="com.ibm.mq.jms.MQConnectionFactory">
+                <property name="hostName" value="100.94.192.249" />
+                <property name="port" value="1414" />
+                <property name="queueManager" value="QM1" />
+                <property name="channel" value="DEV.APP.SVRCONN" />
+                <property name="transportType" value="1" />
+                <property name="shareConvAllowed" value="0" />
+        </bean>
+
+	<bean id="activemq" class="org.apache.camel.component.jms.JmsComponent">
+	   <property name="connectionFactory"> 
+	  	<bean class="org.apache.activemq.ActiveMQConnectionFactory">
+           	     	<property name="brokerURL" value="ssl://100.94.192.105:61617" />
+         		<property name="userName" value="mqm"/>
+			<property name="password" value= "btmqadmin2021"/>
+		</bean>
+	   </property>
+  	</bean>
+
+        <bean id="mqcredential" class="org.springframework.jms.connection.UserCredentialsConnectionFactoryAdapter">
+                <property name="targetConnectionFactory"
+                        ref="mqConnectionFactory" />
+        </bean>
+        <bean id="mq" class="org.apache.camel.component.jms.JmsComponent">
+                <property name="connectionFactory" ref="mqcredential" />
+                <property name="maxConcurrentConsumers" value="1" />
+                <property name="cacheLevelName" value="CACHE_CONSUMER" />
+        </bean>
+
+</beans>

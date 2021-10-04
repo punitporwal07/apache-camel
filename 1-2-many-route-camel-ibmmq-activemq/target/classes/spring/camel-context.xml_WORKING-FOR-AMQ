@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd        http://camel.apache.org/schema/spring       http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+	<camelContext id="camel"
+		xmlns="http://camel.apache.org/schema/spring">
+		<route id="timer">
+			<from uri="timer://foo?fixedRate=true&amp;period=10000" />
+			<setBody>
+				<simple>${date:now:yyyy-MM-dd'T'HH:mm:ss}</simple>
+			</setBody>
+			<log message="SENDING MESSAGE" />
+			<to uri="activemq:queue:DEV.QUEUE.2" />
+			<log message="SENT MESSAGE" />
+		</route>
+		<route id="get">
+			<from uri="activemq:queue:DEV.QUEUE.2" />
+			<log message="GOT MESSAGE with headers: ${in.headers}" />
+			<log message="GOT MESSAGE with Body ${in.body}" />
+		</route>
+	</camelContext>
+
+	<bean id="activemq" class="org.apache.camel.component.jms.JmsComponent">
+		<property name="connectionFactory"> 
+		  <bean class="org.apache.activemq.ActiveMQConnectionFactory">
+                    	<property name="brokerURL" value="ssl://100.94.192.105:61617" />
+         		<property name="userName" value="mqm"/>
+			<property name="password" value= "btmqadmin2021"/>
+		  </bean>
+	 	</property>
+    			<!--property name="trustStore" value="/conf/client.ts"/>
+    			<property name="trustStorePassword" value="password"/-->
+  		</bean>
+
+</beans>
